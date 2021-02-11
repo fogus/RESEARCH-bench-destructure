@@ -4,7 +4,14 @@ Benching Clojure map destructure RHS creation.
 
 ## Usage
 
+To bench Clojure 1.10.2, run:
+
     clj -X:bench :kvs <number of key/value pairs> :iterations <loop iterations>
+
+To bench against a local dev version, run:
+
+    clj -Sdeps '{:deps {org.clojure/clojure {:mvn/version "1.11.0-master-SNAPSHOT"}}}' \
+	-X:bench :kvs <number of key/value pairs> :iterations <loop iterations>
 
 ## License
 
