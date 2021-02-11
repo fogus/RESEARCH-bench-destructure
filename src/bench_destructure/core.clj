@@ -16,6 +16,7 @@
 (defn bench
   [{:keys [kvs iterations] :as opts :or {kvs 2, iterations 20000}}]
   (println "Benchmarking with " opts)
+  (println "  Clojure version " *clojure-version*)
   (go (assoc opts :kvs kvs :iterations iterations)))
 
 
