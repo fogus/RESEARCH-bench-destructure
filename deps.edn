@@ -1,0 +1,13 @@
+{
+ :paths ["src" "classes"]
+ :deps  {org.clojure/clojure {:mvn/version "1.10.2"}}
+
+ :aliases
+ {
+  :bench
+  {:exec-fn bench-destructure.core/bench
+   :exec-args {}}}
+
+ :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+             "clojars" {:url "https://repo.clojars.org/"}}
+ }
