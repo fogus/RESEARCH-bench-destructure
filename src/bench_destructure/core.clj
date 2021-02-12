@@ -12,11 +12,7 @@
                                    (list* 'list kvs))]
        ~(list* + names))))
 
-(defn bench
-  [{:keys [iterations] :as opts :or {iterations 20000}}]
-  (println "Benchmarking with " iterations "iterations.")
-  (println "  Clojure version " *clojure-version*)
-
+(defn bench-destr [iterations]
   (println "destructure-2")
   (time
    (dotimes [_ iterations]
@@ -30,10 +26,9 @@
   (println "destructure-8")
   (time
    (dotimes [_ iterations]
-     (destructure-n 8)))
+     (destructure-n 8))))
 
-  (println)
-  
+(defn bench-phm [iterations]
   (println "PHM.create 2")
   (time
    (dotimes [_ iterations]
@@ -47,10 +42,9 @@
   (println "PHM.create 8")
   (time
    (dotimes [_ iterations]
-     (destructure-n 8 clojure.lang.PersistentHashMap/create seq)))
+     (destructure-n 8 clojure.lang.PersistentHashMap/create seq))))
 
-  (println)
-  
+(defn bench-pam [iterations]
   (println "PAM.createAsIfByAssoc 2")
   (time
    (dotimes [_ iterations]
@@ -66,3 +60,17 @@
    (dotimes [_ iterations]
      (destructure-n 8 clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array))))
 
+(defn bench
+  [{:keys [iterations] :as opts :or {iterations 20000}}]
+  (println "Benchmarking with " iterations "iterations.")
+  (println "  Clojure version " *clojure-version*)
+
+  (bench-destr iterations)
+
+  (println)
+
+  (bench-phm iterations)
+
+  (println)
+
+  (bench-pam iterations))
