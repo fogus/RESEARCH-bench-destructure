@@ -1,5 +1,13 @@
 (ns bench-destructure.core)
 
+(defmacro destructure-n [n]
+  (let [vs    (range n)
+        ks    (map #(->> % (str "a") keyword) vs)
+        names (map (comp symbol name) ks)
+        kvs   (interleave ks vs)]
+    `(let [{:keys ~(vec names)} ~(list* list kvs)]
+       ~(list* + names))))
+
 (defn go [{:keys [kvs iterations]}]
   (let [seed (case kvs 0 () 1 '(:a) (range (* 2 kvs)))
         last-elem  (to-array [nil])]
