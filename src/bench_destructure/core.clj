@@ -37,17 +37,17 @@
   (println "PHM.create 2")
   (time
    (dotimes [_ iterations]
-     (destructure-n 2 clojure.lang.PersistentHashMap/create)))
+     (destructure-n 2 clojure.lang.PersistentHashMap/create seq)))
 
   (println "PHM.create 4")
   (time
    (dotimes [_ iterations]
-     (destructure-n 4 clojure.lang.PersistentHashMap/create)))
+     (destructure-n 4 clojure.lang.PersistentHashMap/create seq)))
   
   (println "PHM.create 8")
   (time
    (dotimes [_ iterations]
-     (destructure-n 8 clojure.lang.PersistentHashMap/create)))
+     (destructure-n 8 clojure.lang.PersistentHashMap/create seq)))
 
   (println)
   
