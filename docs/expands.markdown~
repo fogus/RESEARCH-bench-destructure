@@ -1,0 +1,8 @@
+Expansion of ``
+
+	(let [rhs (list :a0 0 :a1 1)] 
+	  (time 
+	    (dotimes [x__7751__auto__ 10] 
+		  (let [{:keys [a0 a1]} rhs] 
+		    (+ a0 a1)))))
+
