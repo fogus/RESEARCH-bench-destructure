@@ -5,14 +5,19 @@
         ks    (map #(->> % (str "a") keyword) vs)
         names (map (comp symbol name) ks)
         kvs   (interleave ks vs)]
-    `(time
-      (dotimes [x# ~iterations]
-        (let [{:keys ~(vec names)} ~(if wrap
-                                      (if massage
-                                        (list wrap (list massage (list* 'list kvs)))
-                                        (list wrap (list* 'list kvs)))
-                                      (list* 'list kvs))]
-          ~(list* + names))))))
+    `(let [~'rhs ~(list* 'list kvs)]
+       (time
+        (dotimes [x# ~iterations]
+          (let [{:keys ~(vec names)} ~(if wrap
+                                        (if massage
+                                          (list wrap (list massage 'rhs))
+                                          (list wrap 'rhs))
+                                        'rhs)]
+            ~(list* + names)))))))
+
+(macroexpand-1 '(destructure-n 2 10))
+(macroexpand-1 '(destructure-n 2 10 clojure.core.PersistentHashMap/create seq))
+(macroexpand-1 '(destructure-n 2 10 clojure.core.PersistentArrayMap/createAsIfByAssoc to-array))
 
 (defn bench-destr [iterations]
   (println "destructure-2")
