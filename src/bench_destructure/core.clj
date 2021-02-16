@@ -27,7 +27,10 @@
   (destructure-n 4 iterations)
 
   (println "destructure-8")
-  (destructure-n 8 iterations))
+  (destructure-n 8 iterations)
+
+  (println "destructure-16")
+  (destructure-n 16 iterations))
 
 (defn bench-phm [iterations]
   (println "PHM.create 2")
@@ -37,7 +40,10 @@
   (destructure-n 4 iterations clojure.lang.PersistentHashMap/create seq)
   
   (println "PHM.create 8")
-  (destructure-n 8 iterations clojure.lang.PersistentHashMap/create seq))
+  (destructure-n 8 iterations clojure.lang.PersistentHashMap/create seq)
+
+  (println "PHM.create 16")
+  (destructure-n 16 iterations clojure.lang.PersistentHashMap/create seq))
 
 (defn bench-pam [iterations]
   (println "PAM.createAsIfByAssoc 2")
@@ -47,7 +53,10 @@
   (destructure-n 4 iterations clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
 
   (println "PAM.createAsIfByAssoc 8")
-  (destructure-n 8 iterations clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array))
+  (destructure-n 8 iterations clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
+
+  (println "PAM.createAsIfByAssoc 16")
+  (destructure-n 16 iterations clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array))
 
 (defn bench
   [{:keys [iterations] :as opts :or {iterations 20000}}]
