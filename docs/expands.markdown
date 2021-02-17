@@ -3,7 +3,7 @@ Expansion of `(destructure-n pam 2 clojure.core.PersistentArrayMap/createAsIfByA
     (defn pam2 [iterations]
       (let [rhs (list :a0 0 :a1 1)]
         (loop [acc 0 n iterations]
-          (if (< 0 n)
+          (if (pos? n)
             (let [{:keys [a0 a1]} (PersistentArrayMap/createAsIfByAssoc (to-array rhs))]
               (recur (+ acc (+ a0 a1))
                      (dec n)))

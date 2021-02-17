@@ -11,7 +11,7 @@
        (defn ~(-> nom name (str n) symbol) [iterations#]
          (let [~'rhs ~(list* 'list kvs)]
            (loop [acc# 0 n# iterations#]
-             (if (< 0 n#)
+             (if (pos? n#)
                (let [{:keys ~(vec names)} ~(if wrap
                                              (if massage
                                                (list wrap (list massage 'rhs))
@@ -45,20 +45,29 @@
   (dotimes [_ 11]
     (time (fun iterations))))
 
-(defn loop-phm [iterations data]
+(defn loop-pam [iterations data]
   (let [data (to-array data)]
     (loop [acc 0 n iterations]
-      (if (< 0 n)
+      (if (pos? n)
+        (let [res (clojure.lang.PersistentArrayMap/createAsIfByAssoc data)]
+          (recur (+ acc (count res))
+                 (dec n)))
+        acc))))
+
+(defn loop-phm [iterations data]
+  (let [data (seq data)]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
         (let [res (clojure.lang.PersistentHashMap/create data)]
           (recur (+ acc (count res))
                  (dec n)))
         acc))))
 
 (defn time-pam [iterations]
-  (exec iterations #(loop-phm % kvs2)  "PAM/createAsIfByAssoc DIRECT-2")
-  (exec iterations #(loop-phm % kvs4)  "PAM/createAsIfByAssoc DIRECT-4")
-  (exec iterations #(loop-phm % kvs8)  "PAM/createAsIfByAssoc DIRECT-8")
-  (exec iterations #(loop-phm % kvs16) "PAM/createAsIfByAssoc DIRECT-16"))
+  (exec iterations #(loop-pam % kvs2)  "PAM/createAsIfByAssoc DIRECT-2")
+  (exec iterations #(loop-pam % kvs4)  "PAM/createAsIfByAssoc DIRECT-4")
+  (exec iterations #(loop-pam % kvs8)  "PAM/createAsIfByAssoc DIRECT-8")
+  (exec iterations #(loop-pam % kvs16) "PAM/createAsIfByAssoc DIRECT-16"))
 
 (defn time-pam-destr [iterations]
   (exec iterations pam2  "PAM destructure-2")
@@ -67,6 +76,12 @@
   (exec iterations pam16 "PAM destructure-16"))
 
 (defn time-phm [iterations]
+  (exec iterations #(loop-phm % kvs2)  "PHM/create DIRECT-2")
+  (exec iterations #(loop-phm % kvs4)  "PHM/create DIRECT-4")
+  (exec iterations #(loop-phm % kvs8)  "PHM/create DIRECT-8")
+  (exec iterations #(loop-phm % kvs16) "PHM/create DIRECT-16"))
+
+(defn time-phm-destr [iterations]
   (exec iterations phm2  "PHM/create-2")
   (exec iterations phm4  "PHM/create-4")
   (exec iterations phm8  "PHM/create-8")
@@ -83,6 +98,12 @@
   (println "Benchmarking with " iterations "iterations.")
   (println "  Clojure version " *clojure-version*)
 
+  (println "\nPHM in destructure cxt\n====================")
+  (time-phm-destr iterations)
+
+  (println "\nPHM direct\n===")
+  (time-phm iterations)
+  
   (println "\nPAM in destructure cxt\n====================")
   (time-pam-destr iterations)
 
@@ -91,7 +112,8 @@
 
 
 (comment
-
-    (exec 50000 pam2  "pam-2")
+  (exec 50000 #(loop-pam % kvs2)  "PAM/createAsIfByAssoc DIRECT-2")
+  
+  (exec 50000 pam2  "pam-2")
 
 )
