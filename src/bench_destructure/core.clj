@@ -19,6 +19,11 @@
 (macroexpand-1 '(destructure-n phm 2 clojure.core.PersistentHashMap/create seq))
 (macroexpand-1 '(destructure-n pam 2 clojure.core.PersistentArrayMap/createAsIfByAssoc to-array))
 
+(destructure-n canonical 2)
+(destructure-n canonical 4)
+(destructure-n canonical 8)
+(destructure-n canonical 16)
+
 (destructure-n pam 2  clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
 (destructure-n pam 4  clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
 (destructure-n pam 8  clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
@@ -46,11 +51,20 @@
   (exec iterations phm8  "PHM/create-8")
   (exec iterations phm16 "PHM/create-16"))
 
+(defn time-canonical [iterations]
+  (exec iterations canonical2  "canonical-2")
+  (exec iterations canonical4  "canonical-4")
+  (exec iterations canonical8  "canonical-8")
+  (exec iterations canonical16 "canonical-16"))
+
 (defn bench
   [{:keys [iterations] :as opts :or {iterations 50000}}]
   (println "Benchmarking with " iterations "iterations.")
   (println "  Clojure version " *clojure-version*)
 
+  (println "\nCanonical (PHM)\n===============")
+  (time-canonical iterations)
+  
   (println "\nPHM\n===")
   (time-phm iterations)
 
