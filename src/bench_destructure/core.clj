@@ -56,13 +56,23 @@
                  (dec n)))
         acc))))
 
+(defn loop-pam-destr-array-seq [iterations data]
+  (let [data (clojure.lang.ArraySeq/create (to-array data))]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [res (clojure.lang.PersistentArrayMap/createAsIfByAssoc (to-array data))]
+          (recur (+ acc (count res))
+                 (dec n)))
+        acc))))
+
 (defn loop-to-array [iterations data]
-  (loop [acc 0 n iterations]
-    (if (pos? n)
-      (let [res (to-array data)]
-        (recur (+ acc (alength res))
-               (dec n)))
-      acc)))
+  (let [data (clojure.lang.ArraySeq/create (to-array data))]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [res (to-array data)]
+          (recur (+ acc (alength res))
+                 (dec n)))
+        acc))))
 
 (defn loop-phm [iterations data]
   (let [data (seq data)]
@@ -91,6 +101,12 @@
   (exec iterations pam8  "PAM destructure-8")
   (exec iterations pam16 "PAM destructure-16"))
 
+(defn time-pam-destr-array-seq [iterations]
+  (exec iterations #(loop-pam-destr-array-seq % kvs2)  "PAM/caiba, into-array, ArraySeq 2")
+  (exec iterations #(loop-pam-destr-array-seq % kvs4)  "PAM/caiba, into-array, ArraySeq 4")
+  (exec iterations #(loop-pam-destr-array-seq % kvs8)  "PAM/caiba, into-array, ArraySeq 8")
+  (exec iterations #(loop-pam-destr-array-seq % kvs16) "PAM/caiba, into-array, ArraySeq 16"))
+
 (defn time-phm [iterations]
   (exec iterations #(loop-phm % kvs2)  "PHM/create DIRECT-2")
   (exec iterations #(loop-phm % kvs4)  "PHM/create DIRECT-4")
@@ -114,20 +130,24 @@
   (println "Benchmarking with " iterations "iterations.")
   (println "  Clojure version " *clojure-version*)
 
-  (println "\nPHM in destructure cxt\n====================")
-  (time-phm-destr iterations)
-
-  (println "\nPHM direct\n===")
-  (time-phm iterations)
-  
   (println "\nPAM in destructure cxt\n====================")
-  (time-pam-destr iterations)
+  (time-pam-destr-array-seq iterations)
 
-  (println "\nto-array\n=========")
-  (time-to-array iterations)
-  
-  (println "\nPAM direct\n===========")
-  (time-pam iterations))
+  (comment
+    (println "\nPHM/create in destructure context\n====================")
+    (time-phm-destr iterations)
+
+    (println "\nPHM direct\n===")
+    (time-phm iterations)
+
+    (println "\nPAM in destructure cxt (to-array list)\n==========================")
+    (time-pam-destr iterations)
+
+    (println "\nto-array\n=========")
+    (time-to-array iterations)
+
+    (println "\nPAM direct\n===========")
+    (time-pam iterations)))
 
 
 (comment
@@ -135,4 +155,5 @@
   
   (exec 50000 pam2  "pam-2")
 
+  (exec 20000 #(loop-to-array % kvs2)  "TA-2")
 )
