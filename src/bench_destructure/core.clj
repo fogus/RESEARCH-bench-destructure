@@ -42,8 +42,10 @@
 
 (defn exec [iterations fun msg]
   (println msg)
-  (dotimes [_ 11]
-    (time (fun iterations))))
+  (loop [res nil n 11]
+    (if (pos? n)
+      (recur (time (fun iterations)) (dec n))
+      res)))
 
 (defn loop-pam [iterations data]
   (let [data (to-array data)]
@@ -53,6 +55,14 @@
           (recur (+ acc (count res))
                  (dec n)))
         acc))))
+
+(defn loop-to-array [iterations data]
+  (loop [acc 0 n iterations]
+    (if (pos? n)
+      (let [res (to-array data)]
+        (recur (+ acc (alength res))
+               (dec n)))
+      acc)))
 
 (defn loop-phm [iterations data]
   (let [data (seq data)]
@@ -68,6 +78,12 @@
   (exec iterations #(loop-pam % kvs4)  "PAM/createAsIfByAssoc DIRECT-4")
   (exec iterations #(loop-pam % kvs8)  "PAM/createAsIfByAssoc DIRECT-8")
   (exec iterations #(loop-pam % kvs16) "PAM/createAsIfByAssoc DIRECT-16"))
+
+(defn time-to-array [iterations]
+  (exec iterations #(loop-to-array % kvs2)  "TA-2")
+  (exec iterations #(loop-to-array % kvs4)  "TA-4")
+  (exec iterations #(loop-to-array % kvs8)  "TA-8")
+  (exec iterations #(loop-to-array % kvs16) "TA-16"))
 
 (defn time-pam-destr [iterations]
   (exec iterations pam2  "PAM destructure-2")
@@ -107,12 +123,15 @@
   (println "\nPAM in destructure cxt\n====================")
   (time-pam-destr iterations)
 
-  (println "\nPAM direct\n===")
+  (println "\nto-array\n=========")
+  (time-to-array iterations)
+  
+  (println "\nPAM direct\n===========")
   (time-pam iterations))
 
 
 (comment
-  (exec 50000 #(loop-pam % kvs2)  "PAM/createAsIfByAssoc DIRECT-2")
+  (exec 50000 #(loop-pam % kvs16)  "PAM/createAsIfByAssoc DIRECT-16")
   
   (exec 50000 pam2  "pam-2")
 
