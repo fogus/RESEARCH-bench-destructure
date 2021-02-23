@@ -30,9 +30,9 @@
 (comment
   ;; calling with no processing functions
   
-  (macroexpand '(destructure-n canonical 2))
+  (macroexpand '(destructure-n destr 2))
 
-  (defn canonical2 [iterations rhs]
+  (defn destr2 [iterations rhs]
     (loop [acc 0 n iterations]
       (if (pos? n)
         (let [{:keys [a0 a1]} rhs]
@@ -95,6 +95,10 @@
 (defn as [data]
   (clojure.lang.ArraySeq/create (to-array data)))
 
+(defn sm [data]
+  (let [m (clojure.lang.PersistentHashMap/create data)]
+    (clojure.lang.ArraySeq/create (to-array [m]))))
+
 (defn loop-to-array [iterations data]
   (let [data (clojure.lang.ArraySeq/create (to-array data))]
     (loop [acc 0 n iterations]
@@ -115,6 +119,12 @@
   (exec iterations destr4  (as kvs4)  "destructure context-4")
   (exec iterations destr8  (as kvs8)  "destructure context-8")
   (exec iterations destr16 (as kvs16) "destructure context-16"))
+
+(defn time-singleton-map [iterations]
+  (exec iterations destr2  (sm kvs2)  "singleton-map-2")
+  (exec iterations destr4  (sm kvs4)  "singleton-map-4")
+  (exec iterations destr8  (sm kvs8)  "singleton-map-8")
+  (exec iterations destr16 (sm kvs16) "singleton-map-16"))
 
 (defn time-pam-direct [iterations]
   (exec iterations pam-direct2  (as kvs2)  "PAM/caiba destructure-2")
@@ -151,7 +161,12 @@
       (time-pam-direct iterations)
       
       (println "\nPAM destructure context\n===")
-      (time-destr iterations)))
+      (time-destr iterations)
+
+      (println "\nSingleton map\n===")
+      (time-singleton-map iterations)
+    )
+  )
 )
 
 
