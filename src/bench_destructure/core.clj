@@ -1,6 +1,13 @@
 (ns bench-destructure.core)
 
-(defmacro destructure-n [nom n & [wrap massage]]
+(defmacro destructure-n
+  "Generates a function taking a loop count and a data structure that
+  will be used in the right-hand-side of a map destructure form. Two optional
+  functions may be passed one that takes the data structure and returns another
+  and one that builds the map used as the input to the binding form. Additionally,
+  this macro will build the input data structure and define it in the current
+  namespace."
+  [nom n & [wrap massage]]
   (let [vs    (range n)
         ks    (map #(->> % (str "a") keyword) vs)
         names (map (comp symbol name) ks)
@@ -20,9 +27,43 @@
                       (dec n#)))
              acc#))))))
 
-(macroexpand-1 '(destructure-n canonical 2))
-(macroexpand-1 '(destructure-n phm 2 clojure.core.PersistentHashMap/create seq))
-(macroexpand-1 '(destructure-n pam 2 clojure.core.PersistentArrayMap/createAsIfByAssoc to-array))
+(comment
+  ;; calling with no processing functions
+  
+  (macroexpand '(destructure-n canonical 2))
+
+  (defn canonical2 [iterations rhs]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [{:keys [a0 a1]} rhs]
+          (recur (+ acc (+ a0 a1))
+                 (dec n)))
+        acc)))
+
+  ;; calling with a static method call and a call to seq
+  
+  (macroexpand-1 '(destructure-n phm 2 clojure.core.PersistentHashMap/create seq))
+
+  (defn phm2 [iterations rhs]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [{:keys [a0 a1]} (clojure.core.PersistentHashMap/create (seq rhs))]
+          (recur (+ acc (+ a0 a1))
+                 (dec n)))
+        acc)))
+
+  ;; calling with a static method call and convertor to array
+  
+  (macroexpand-1 '(destructure-n pam 2 clojure.core.PersistentArrayMap/createAsIfByAssoc to-array))
+
+  (defn pam2 [iterations rhs]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [{:keys [a0 a1]} (clojure.core.PersistentArrayMap/create (to-array rhs))]
+          (recur (+ acc (+ a0 a1))
+                 (dec n)))
+        acc)))
+  )
 
 (destructure-n pam-direct 2  clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
 (destructure-n pam-direct 4  clojure.lang.PersistentArrayMap/createAsIfByAssoc to-array)
