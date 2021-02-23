@@ -95,6 +95,21 @@
 (defn as [data]
   (clojure.lang.ArraySeq/create (to-array data)))
 
+(defn loop-to-array [iterations data]
+  (let [data (clojure.lang.ArraySeq/create (to-array data))]
+    (loop [acc 0 n iterations]
+      (if (pos? n)
+        (let [res (to-array data)]
+          (recur (+ acc (alength res))
+                 (dec n)))
+        acc))))
+
+(defn time-to-array [iterations]
+  (exec iterations loop-to-array kvs2  "TA-2")
+  (exec iterations loop-to-array kvs4  "TA-4")
+  (exec iterations loop-to-array kvs8  "TA-8")
+  (exec iterations loop-to-array kvs16 "TA-16"))
+
 (defn time-destr [iterations]
   (exec iterations destr2  (as kvs2)  "destructure context-2")
   (exec iterations destr4  (as kvs4)  "destructure context-4")
@@ -120,17 +135,24 @@
 
   (if (= *clojure-version* {:major 1, :minor 10, :incremental 2, :qualifier nil})
     (do
+      (println "\nto-array of ArraySeq\n===")
+      (time-to-array iterations)
+
       (println "\nPHM direct\n====================")
       (time-phm-direct iterations)
 
       (println "\nPHM destructure context\n===")
       (time-destr iterations))
     (do
+      (println "\nto-array of ArraySeq\n===")
+      (time-to-array iterations)
+
       (println "\nPAM direct\n===")
       (time-pam-direct iterations)
       
       (println "\nPAM destructure context\n===")
-      (time-destr iterations))))
+      (time-destr iterations)))
+)
 
 
 (comment
