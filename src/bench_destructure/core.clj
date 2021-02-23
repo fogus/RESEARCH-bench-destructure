@@ -23,7 +23,7 @@
                                              (list wrap (list massage 'rhs))
                                              (list wrap 'rhs))
                                            'rhs)]
-               (recur (+ acc# ~(list* + names))
+               (recur (+ acc# ~(last names))
                       (dec n#)))
              acc#))))))
 
@@ -36,7 +36,7 @@
     (loop [acc 0 n iterations]
       (if (pos? n)
         (let [{:keys [a0 a1]} rhs]
-          (recur (+ acc (+ a0 a1))
+          (recur (+ acc a1)
                  (dec n)))
         acc)))
 
@@ -48,7 +48,7 @@
     (loop [acc 0 n iterations]
       (if (pos? n)
         (let [{:keys [a0 a1]} (clojure.core.PersistentHashMap/create (seq rhs))]
-          (recur (+ acc (+ a0 a1))
+          (recur (+ acc a1)
                  (dec n)))
         acc)))
 
@@ -60,7 +60,7 @@
     (loop [acc 0 n iterations]
       (if (pos? n)
         (let [{:keys [a0 a1]} (clojure.core.PersistentArrayMap/create (to-array rhs))]
-          (recur (+ acc (+ a0 a1))
+          (recur (+ acc a1)
                  (dec n)))
         acc)))
   )
@@ -148,8 +148,8 @@
       (println "\nto-array of ArraySeq\n===")
       (time-to-array iterations)
 
-      (println "\nPHM direct\n====================")
-      (time-phm-direct iterations)
+;;      (println "\nPHM direct\n====================")
+;;      (time-phm-direct iterations)
 
       (println "\nPHM destructure context\n===")
       (time-destr iterations))
@@ -157,8 +157,8 @@
       (println "\nto-array of ArraySeq\n===")
       (time-to-array iterations)
 
-      (println "\nPAM direct\n===")
-      (time-pam-direct iterations)
+;;      (println "\nPAM direct\n===")
+;;      (time-pam-direct iterations)
       
       (println "\nPAM destructure context\n===")
       (time-destr iterations)
