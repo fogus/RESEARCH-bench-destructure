@@ -87,7 +87,7 @@
 
 (defn exec [iterations fun data msg]
   (println msg)
-  (loop [res nil n 11]
+  (loop [res nil n 21]
     (if (pos? n)
       (recur (time (fun iterations data)) (dec n))
       res)))
@@ -95,9 +95,15 @@
 (defn as [data]
   (clojure.lang.ArraySeq/create (to-array data)))
 
-(defn sm [data]
-  (let [m (clojure.lang.PersistentHashMap/create data)]
+(defn sm [data ctor]
+  (let [m (ctor data)]
     (clojure.lang.ArraySeq/create (to-array [m]))))
+
+(defn PHM [data]
+  (clojure.lang.PersistentHashMap/create (seq data)))
+
+(defn PAM [data]
+  (clojure.lang.PersistentArrayMap/createAsIfByAssoc (to-array data)))
 
 (defn loop-to-array [iterations data]
   (let [data (clojure.lang.ArraySeq/create (to-array data))]
@@ -107,6 +113,16 @@
           (recur (+ acc (alength res))
                  (dec n)))
         acc))))
+
+(def kvs2+phm-all (-> kvs2 vec (conj (PHM kvs2)) as))
+(def kvs4+phm-all (-> kvs4 vec (conj (PHM kvs4)) as))
+(def kvs8+phm-all (-> kvs8 vec (conj (PHM kvs8)) as))
+(def kvs16+phm-all (-> kvs16 vec (conj (PHM kvs16)) as))
+
+(def kvs2+pam-all (-> kvs2 vec (conj (PAM kvs2)) as))
+(def kvs4+pam-all (-> kvs4 vec (conj (PAM kvs4)) as))
+(def kvs8+pam-all (-> kvs8 vec (conj (PAM kvs8)) as))
+(def kvs16+pam-all (-> kvs16 vec (conj (PAM kvs16)) as))
 
 (defn time-to-array [iterations]
   (exec iterations loop-to-array kvs2  "TA-2")
@@ -121,10 +137,40 @@
   (exec iterations destr16 (as kvs16) "destructure context-16"))
 
 (defn time-singleton-map [iterations]
-  (exec iterations destr2  (sm kvs2)  "singleton-map-2")
-  (exec iterations destr4  (sm kvs4)  "singleton-map-4")
-  (exec iterations destr8  (sm kvs8)  "singleton-map-8")
-  (exec iterations destr16 (sm kvs16) "singleton-map-16"))
+  (exec iterations destr2  (sm kvs2 PHM)  "singleton-map-2")
+  (exec iterations destr4  (sm kvs4 PHM)  "singleton-map-4")
+  (exec iterations destr8  (sm kvs8 PHM)  "singleton-map-8")
+  (exec iterations destr16 (sm kvs16 PHM) "singleton-map-16"))
+
+(defn time-kvs2-plus-m2-no-dups [iterations]
+  (exec iterations destr2  (-> kvs2  vec (conj {:a 1}) as)  "kvs-2, plus {k v}, no dups")
+  (exec iterations destr4  (-> kvs4  vec (conj {:a 1}) as)  "kvs-4, plus {k v}, no dups")
+  (exec iterations destr8  (-> kvs8  vec (conj {:a 1}) as)  "kvs-8, plus {k v}, no dups")
+  (exec iterations destr16 (-> kvs16 vec (conj {:a 1}) as)  "kvs-16, plus {k v}, no dups"))
+
+(defn time-kvs-plus-m2-one-dup [iterations]
+  (exec iterations destr2  (-> kvs2  vec (conj {:a1 1}) as)  "kvs-2, plus {k v}, 1 dups")
+  (exec iterations destr4  (-> kvs4  vec (conj {:a1 1}) as)  "kvs-4, plus {k v}, 1 dups")
+  (exec iterations destr8  (-> kvs8  vec (conj {:a1 1}) as)  "kvs-8, plus {k v}, 1 dups")
+  (exec iterations destr16 (-> kvs16 vec (conj {:a1 1}) as)  "kvs-16, plus {k v}, 1 dups"))
+
+(defn time-kvs-plus-m2-two-dup [iterations]
+  (exec iterations destr2  (-> kvs2  vec (conj {:a0 0 :a1 1}) as)  "kvs-2, plus {k v}, 2 dups")
+  (exec iterations destr4  (-> kvs4  vec (conj {:a0 0 :a1 1}) as)  "kvs-4, plus {k v}, 2 dups")
+  (exec iterations destr8  (-> kvs8  vec (conj {:a0 0 :a1 1}) as)  "kvs-8, plus {k v}, 2 dups")
+  (exec iterations destr16 (-> kvs16 vec (conj {:a0 0 :a1 1}) as)  "kvs-16, plus {k v}, 2 dups"))
+
+(defn time-kvs-plus-phm-all-dup [iterations]
+  (exec iterations destr2  kvs2+phm-all  "kvs-2, plus  PHM, all dups")
+  (exec iterations destr4  kvs4+phm-all  "kvs-4, plus  PHM, all dups")
+  (exec iterations destr8  kvs8+phm-all  "kvs-8, plus  PHM, all dups")
+  (exec iterations destr16 kvs16+phm-all "kvs-16, plus PHM, all dups"))
+
+(defn time-kvs-plus-pam-all-dup [iterations]
+  (exec iterations destr2  kvs2+pam-all  "kvs-2, plus  PAM, all dups")
+  (exec iterations destr4  kvs4+pam-all  "kvs-4, plus  PAM, all dups")
+  (exec iterations destr8  kvs8+pam-all  "kvs-8, plus  PAM, all dups")
+  (exec iterations destr16 kvs16+pam-all "kvs-16, plus PAM, all dups"))
 
 (defn time-pam-direct [iterations]
   (exec iterations pam-direct2  (as kvs2)  "PAM/caiba destructure-2")
@@ -145,8 +191,8 @@
 
   (if (= *clojure-version* {:major 1, :minor 10, :incremental 2, :qualifier nil})
     (do
-      (println "\nto-array of ArraySeq\n===")
-      (time-to-array iterations)
+;;      (println "\nto-array of ArraySeq\n===")
+;;      (time-to-array iterations)
 
 ;;      (println "\nPHM direct\n====================")
 ;;      (time-phm-direct iterations)
@@ -154,23 +200,30 @@
       (println "\nPHM destructure context\n===")
       (time-destr iterations))
     (do
-      (println "\nto-array of ArraySeq\n===")
-      (time-to-array iterations)
+;;      (println "\nPAM destructure context\n===")
+;;      (time-destr iterations)
+
+;;      (println "\nSingleton map\n===")
+;;      (time-singleton-map iterations)
+
+      (println "\nkvs2 {k v} no dupes\n===")
+      (time-kvs2-plus-m2-no-dups iterations)
+
+;;     (println "\nto-array of ArraySeq\n===")
+;;     (time-to-array iterations)
 
 ;;      (println "\nPAM direct\n===")
-;;      (time-pam-direct iterations)
-      
-      (println "\nPAM destructure context\n===")
-      (time-destr iterations)
+;;      (time-pam-direct iterations)    
 
-      (println "\nSingleton map\n===")
-      (time-singleton-map iterations)
+;;      (println "\nkvs2 PAM all dupes\n===")
+;;      (time-kvs-plus-pam-all-dup iterations)      
     )
   )
 )
 
 
 (comment
+  (time-destr 500000)
   (pam-destr2 100 (as kvs2))
   
   (exec 50000 #(loop-pam % kvs16)  "PAM/createAsIfByAssoc DIRECT-16")
